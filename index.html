@@ -371,14 +371,24 @@
                 });
 
                 const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    throw new Error('服务器返回了非JSON响应，状态码: ' + response.status);
+                console.log('Response status:', response.status, 'Content-Type:', contentType);
+
+                if (!response.ok) {
+                    let errorMsg = '注册失败 (状态码: ' + response.status;
+                    try {
+                        const text = await response.text();
+                        errorMsg += ')<br>' + text;
+                    } catch (e) {
+                        errorMsg += ')<br>无法解析错误信息';
+                    }
+                    resultDiv.innerHTML = errorMsg;
+                    resultDiv.className = 'result error';
+                    return;
                 }
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
+                if (data.success) {
                     resultDiv.innerHTML = '<strong>注册成功！</strong><br>邮箱: ' + data.email + '<br>用户ID: ' + data.userId;
                     resultDiv.className = 'result success';
                 } else {
@@ -402,10 +412,8 @@
             try {
                 const response = await fetch('/identity/connect');
 
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    throw new Error('服务器返回了非JSON响应，状态码: ' + response.status);
+                if (!response.ok) {
+                    throw new Error('API 测试失败，状态码: ' + response.status);
                 }
 
                 const data = await response.json();
