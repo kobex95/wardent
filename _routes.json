@@ -1,15 +1,5 @@
 {
   "version": 1,
   "include": ["/*"],
-  "exclude": ["/assets/*"],
-  "routes": [
-    {
-      "pattern": "/api/*",
-      "function": "edge-functions/api/[...path].ts"
-    },
-    {
-      "pattern": "/identity/*",
-      "function": "edge-functions/identity/[...path].ts"
-    }
-  ]
+  "exclude": ["/assets/*"]
 }
