@@ -1,0 +1,29 @@
+# 依赖和构建产物
+node_modules/
+target/
+dist/
+build/
+*.wasm
+
+# 环境变量和密钥
+.env
+.env.local
+*.key
+*.pem
+
+# IDE 和编辑器
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志
+logs/
+*.log
+
+# 临时文件
+tmp/
+.cache/
+
+# 测试覆盖率
+coverage/

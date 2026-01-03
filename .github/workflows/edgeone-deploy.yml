@@ -1,0 +1,82 @@
+# GitHub Actions 工作流 - 部署到 EdgeOne Pages
+
+name: Deploy to EdgeOne
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
+  EDGEONE_PROJECT_ID: ${{ secrets.EDGEONE_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32-wasi
+          override: true
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Rust/WASM
+        run: |
+          cargo install -q worker-build
+          cargo build --target wasm32-wasi --release
+
+      - name: Run tests
+        run: cargo test --release
+
+      - name: Install EdgeOne CLI
+        run: npm install -g edgeone
+
+      - name: Deploy to EdgeOne Pages
+        run: |
+          edgeone pages deploy \
+            --token ${{ secrets.EDGEONE_API_TOKEN }} \
+            --project ${{ secrets.EDGEONE_PROJECT_ID }} \
+            --output-dir build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          ALLOWED_EMAILS: ${{ secrets.ALLOWED_EMAILS }}
+
+      - name: Run health check
+        run: |
+          sleep 30
+          curl -f ${{ secrets.EDGEONE_DEPLOY_URL }}/api/config || exit 1
+
+      - name: Deploy success notification
+        if: success()
+        run: echo "Deployment successful!"
+
+      - name: Deploy failure notification
+        if: failure()
+        run: echo "Deployment failed!"

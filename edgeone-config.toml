@@ -1,0 +1,74 @@
+# EdgeOne Pages 配置文件
+# 用于部署 Warden-Worker 到 EdgeOne 平台
+
+[project]
+name = "warden-worker"
+version = "0.1.0"
+description = "Bitwarden-compatible server for EdgeOne Pages + Supabase"
+
+[build]
+# 构建命令
+command = "cargo build --target wasm32-wasi --release"
+output_dir = "build"
+
+[functions]
+# Edge Functions 配置
+runtime = "wasm32-wasi"
+memory = "512MB"
+timeout = "30s"
+
+# 环境变量配置 (从 EdgeOne 控制台或本地 .env 文件读取)
+[env]
+# Supabase 数据库配置
+SUPABASE_URL = "${SUPABASE_URL}"
+SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}"
+SUPABASE_SERVICE_ROLE_KEY = "${SUPABASE_SERVICE_ROLE_KEY}"
+
+# JWT 配置
+JWT_SECRET = "${JWT_SECRET}"
+JWT_REFRESH_SECRET = "${JWT_REFRESH_SECRET}"
+
+# 允许的邮箱列表 (逗号分隔)
+ALLOWED_EMAILS = "${ALLOWED_EMAILS}"
+
+# 应用配置
+APP_ENV = "production"
+LOG_LEVEL = "info"
+
+# CORS 配置
+CORS_ALLOWED_ORIGINS = "*"
+
+# 数据库连接池配置
+DB_POOL_SIZE = "5"
+DB_CONNECTION_TIMEOUT = "10s"
+
+# 加密配置
+PBKDF2_ITERATIONS = "100000"
+ENCRYPTION_KEY_SIZE = "256"
+
+# 缓存配置 (EdgeOne KV)
+ENABLE_CACHE = "true"
+CACHE_TTL = "300"
+
+[[routes]]
+# API 路由配置
+pattern = "/api/*"
+function = "api-handler"
+
+[[routes]]
+pattern = "/identity/*"
+function = "identity-handler"
+
+[cdn]
+# CDN 配置
+enabled = true
+cache_rules = [
+  { pattern = "/api/config", ttl = "300s" },
+  { pattern = "/api/sync", ttl = "60s" }
+]
+
+[security]
+# 安全配置
+rate_limiting = true
+rate_limit_per_minute = 60
+enable_https_only = true

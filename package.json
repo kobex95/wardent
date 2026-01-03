@@ -1,0 +1,35 @@
+{
+  "name": "warden-worker",
+  "version": "0.1.0",
+  "description": "Bitwarden-compatible server for EdgeOne Pages + Supabase",
+  "main": "index.js",
+  "scripts": {
+    "dev": "edgeone pages dev",
+    "build": "edgeone pages build",
+    "deploy": "edgeone pages deploy",
+    "init": "edgeone pages init",
+    "test": "cargo test",
+    "lint": "cargo clippy"
+  },
+  "keywords": [
+    "bitwarden",
+    "password-manager",
+    "edgeone",
+    "supabase",
+    "rust",
+    "wasm"
+  ],
+  "author": "deepubuntu",
+  "license": "MIT",
+  "dependencies": {
+    "supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "edgeone-cli": "^1.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
