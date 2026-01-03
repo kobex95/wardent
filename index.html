@@ -18,11 +18,13 @@
             align-items: center;
             justify-content: center;
             color: white;
+            padding: 20px;
         }
         .container {
             text-align: center;
             padding: 2rem;
             max-width: 600px;
+            width: 100%;
         }
         h1 {
             font-size: 3rem;
@@ -34,13 +36,94 @@
             margin-bottom: 2rem;
             opacity: 0.9;
         }
-        .api-info {
-            background: rgba(255,255,255,0.1);
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(255,255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,255,0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            background: rgba(255,255,255,255,0.2);
+        }
+        .tab-btn.active {
+            background: rgba(255,255,255,255,0.2);
+            border-color: white;
+        }
+        .panel {
+            display: none;
+            background: rgba(255,255,255,255,0.1);
             backdrop-filter: blur(10px);
             border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255,255,255,0.2);
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,255,0.2);
+            text-align: left;
+        }
+        .panel.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,255,0.3);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        .form-group input::placeholder {
+            color: rgba(255,255,255,255,0.5);
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #10b981;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+        .submit-btn:hover {
+            background: #059669;
+        }
+        .submit-btn:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+        .result.success {
+            background: rgba(16, 185, 129, 0.3);
+            display: block;
+        }
+        .result.error {
+            background: rgba(239, 68, 68, 0.3);
+            display: block;
         }
         .api-endpoint {
             background: rgba(0,0,0,0.2);
@@ -51,28 +134,24 @@
             display: inline-block;
             text-align: left;
             width: 100%;
+            word-break: break-all;
         }
-        .status {
-            display: inline-block;
-            padding: 0.5rem 1.5rem;
-            background: #10b981;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        .info-box {
+            background: rgba(255,255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,255,0.2);
         }
-        .tech-stack {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 2rem;
+        .info-box h3 {
+            margin-bottom: 1rem;
         }
-        .tech-tag {
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.9rem;
+        .info-box code {
+            background: rgba(0,0,0,0.2);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
         }
     </style>
 </head>
@@ -82,13 +161,40 @@
         <h1>Warden-Worker API</h1>
         <p>Bitwarden 兼容的密码管理器后端服务</p>
 
-        <div class="api-info">
-            <h3>API 端点</h3>
-            <div class="api-endpoint">/api/* - 核心功能</div>
-            <div class="api-endpoint">/identity/* - 身份验证</div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showPanel('register')">用户注册</button>
+            <button class="tab-btn" onclick="showPanel('api')">API 测试</button>
         </div>
 
-        <p>基于 EdgeOne + Supabase 构建</p>
+        <!-- 注册面板 -->
+        <div id="register-panel" class="panel active">
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>邮箱地址（必须在白名单：*@189.cn, *@qq.com）</label>
+                    <input type="email" id="email" required placeholder="test@189.cn">
+                </div>
+                <div class="form-group">
+                    <label>主密码（用于生成哈希）</label>
+                    <input type="password" id="password" required placeholder="YourMasterPassword">
+                </div>
+                <button type="submit" class="submit-btn" id="registerBtn">注册账号</button>
+            </form>
+            <div id="registerResult" class="result"></div>
+        </div>
+
+        <!-- API 测试面板 -->
+        <div id="api-panel" class="panel">
+            <div class="info-box">
+                <h3>测试 API 端点</h3>
+                <p>直接访问以下链接测试：</p>
+                <div class="api-endpoint">GET <a href="/identity/connect" target="_blank" style="color:white;">/identity/connect</a></div>
+                <div class="api-endpoint">GET <a href="/api/config" target="_blank" style="color:white;">/api/config</a></div>
+            </div>
+            <div class="form-group">
+                <button class="submit-btn" onclick="testAPI()">测试连接</button>
+            </div>
+            <div id="apiResult" class="result"></div>
+        </div>
 
         <div class="tech-stack">
             <span class="tech-tag">🦀 Rust</span>
@@ -97,5 +203,118 @@
             <span class="tech-tag">🔒 Bitwarden</span>
         </div>
     </div>
+
+    <script>
+        // 切换面板
+        function showPanel(panelName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+
+            if (panelName === 'register') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('register-panel').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('api-panel').classList.add('active');
+            }
+        }
+
+        // 生成简单的哈希（仅用于演示，实际应使用 PBKDF2）
+        async function simpleHash(password, salt) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + salt);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // 生成随机字符串
+        function generateRandom(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // 处理注册
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('registerBtn');
+            const resultDiv = document.getElementById('registerResult');
+
+            if (!email || !password) {
+                resultDiv.textContent = '请填写邮箱和密码';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '注册中...';
+
+            try {
+                // 生成盐值和哈希
+                const salt = generateRandom(32);
+                const hash = await simpleHash(password, salt);
+
+                // 生成密钥
+                const key = generateRandom(64);
+                const publicKey = generateRandom(128);
+                const privateKey = generateRandom(128);
+
+                const response = await fetch('/identity/accounts/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        masterPasswordHash: hash,
+                        masterPasswordSalt: salt,
+                        key: key,
+                        public_key: publicKey,
+                        private_key: privateKey
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `<strong>注册成功！</strong><br>邮箱: ${data.email}<br>用户ID: ${data.userId}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `<strong>注册失败</strong><br>${data.error || data.message || '未知错误'}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>错误</strong><br>${error.message}`;
+                resultDiv.className = 'result error';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '注册账号';
+            }
+        }
+
+        // 测试 API
+        async function testAPI() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch('/identity/connect');
+                const data = await response.json();
+
+                resultDiv.innerHTML = `<strong>API 正常！</strong><br>版本: ${data.version}<br>名称: ${data.name}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>API 测试失败</strong><br>${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
 </body>
 </html>
