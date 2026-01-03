@@ -88,12 +88,15 @@ export async function onRequest(context: any) {
 
       const result = await supabase.createUser(newUser);
 
+      // 确保返回正确的用户ID
+      const userId = Array.isArray(result) ? result[0]?.id : result?.id;
+
       return new Response(
         JSON.stringify({
           success: true,
           message: 'User registered successfully',
           email: body.email,
-          userId: result.id,
+          userId: userId,
         }),
         { headers, status: 201 }
       );

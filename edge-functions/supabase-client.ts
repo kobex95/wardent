@@ -44,6 +44,8 @@ export class SupabaseClient {
     password_hash: string;
     password_salt: string;
     key: string;
+    private_key?: string;
+    public_key?: string;
   }) {
     return this.request('POST', 'users', user);
   }
