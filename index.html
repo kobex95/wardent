@@ -370,6 +370,12 @@
                     })
                 });
 
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error('服务器返回了非JSON响应，状态码: ' + response.status);
+                }
+
                 const data = await response.json();
 
                 if (response.ok && data.success) {
@@ -395,6 +401,13 @@
 
             try {
                 const response = await fetch('/identity/connect');
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error('服务器返回了非JSON响应，状态码: ' + response.status);
+                }
+
                 const data = await response.json();
 
                 resultDiv.innerHTML = '<strong>API 正常！</strong><br>版本: ' + data.version + '<br>名称: ' + data.name;
