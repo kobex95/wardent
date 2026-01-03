@@ -102,3 +102,16 @@ export async function onRequest(context: any) {
   };
   return new Response(JSON.stringify(response), { headers });
 }
+
+// Cloudflare Pages 风格的导出
+export async function onRequestPost(context: any) {
+  return onRequest(context);
+}
+
+export async function onRequestGet(context: any) {
+  return onRequest(context);
+}
+
+export async function onRequestOptions(context: any) {
+  return onRequest(context);
+}
