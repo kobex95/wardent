@@ -1,11 +1,11 @@
 // Identity Handler - 处理 /identity/* 路由
-export async function onRequest(context: any) {
-  const { request, env } = context;
+export async function onRequest(context) {
+  const { request, env, params } = context;
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
 
-  console.log('Identity Handler - Path:', path, 'Method:', method);
+  console.log('Identity Handler - Path:', path, 'Method:', method, 'Params:', params);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ export async function onRequest(context: any) {
   }
 
   // 处理连接请求
-  if (path === '/identity/connect' || path.includes('/identity/connect')) {
+  if (path === '/identity/connect' || path === '/identity/connect/') {
     const data = {
       version: '1.59.1',
       name: 'Warden-Worker',
@@ -37,9 +37,9 @@ export async function onRequest(context: any) {
     return new Response(JSON.stringify(data), { headers });
   }
 
-  // 处理注册请求 - 支持所有方法
+  // 处理注册请求 - 只接受POST
   if (path.startsWith('/identity/accounts/register')) {
-    console.log('Register endpoint called, method:', method, 'path:', path);
+    console.log('Register endpoint called, method:', method);
 
     if (method === 'POST') {
       try {
@@ -52,7 +52,7 @@ export async function onRequest(context: any) {
           email: body.email || 'not provided',
           userId: 'user-' + Date.now(),
         }), { headers, status: 201 });
-      } catch (error: any) {
+      } catch (error) {
         console.error('Register error:', error);
         return new Response(
           JSON.stringify({ error: error.message || 'Registration failed' }),
